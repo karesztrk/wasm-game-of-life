@@ -144,14 +144,19 @@ impl Universe {
 
         self.cells = next;
     }
+
+    pub fn toggle_cell(&mut self, row: u32, column: u32) {
+        let idx = self.get_index(row, column);
+        self.cells[idx].toggle();
+    }
 }
 
 #[wasm_bindgen]
 impl Universe {
     pub fn new() -> Universe {
         utils::set_panic_hook();
-        let width = 32;
-        let height = 32;
+        let width = 64;
+        let height = 64;
 
         // Initial state of the universe
         let cells = (0..width * height).map(|_i| {
@@ -184,5 +189,14 @@ impl Universe {
 
     pub fn cells(&self) -> *const Cell {
         self.cells.as_ptr()
+    }
+}
+
+impl Cell {
+    fn toggle(&mut self) {
+        *self = match *self {
+            Cell::Alive => Cell::Dead,
+            Cell::Dead => Cell::Alive,
+        }
     }
 }
