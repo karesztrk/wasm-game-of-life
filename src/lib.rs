@@ -6,12 +6,21 @@ use std::fmt;
 
 extern crate js_sys;
 
+extern crate web_sys;
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
 
 #[wasm_bindgen]
 #[repr(u8)]
@@ -103,6 +112,8 @@ impl Universe {
                 let cell = self.cells[idx];
                 let live_neighbors = self.live_neighbor_count(row, col);
 
+                //log!("cell[{}, {}] is initially {:?} and has {} live neighbors", row, col, cell, live_neighbors);
+
                 let next_cell = match (cell, live_neighbors) {
                     // Any living cell that has fewer than 2 living neighbours will die
                     (Cell::Alive, x) if x < 2 => Cell::Dead,
@@ -117,6 +128,16 @@ impl Universe {
                     
                 };
 
+                //log!("it becomes {:?}", next_cell);
+
+                /*if next[idx] != next_cell {
+                    if next_cell == Cell::Dead {
+                        log!("cell[{}, {}] becomes Dead", row, col);
+                    } else {
+                        log!("cell[{}, {}] becomes Alive", row, col);
+                    }
+                }*/
+
                 next[idx] = next_cell;
             }
         }
@@ -129,8 +150,8 @@ impl Universe {
 impl Universe {
     pub fn new() -> Universe {
         utils::set_panic_hook();
-        let width = 128;
-        let height = 128;
+        let width = 32;
+        let height = 32;
 
         // Initial state of the universe
         let cells = (0..width * height).map(|_i| {
